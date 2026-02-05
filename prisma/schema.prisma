@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+model Slider{
+  id Int @id @default(autoincrement())
+  imageUrl String
+  heading String?
+  description String?
+  createdAt DateTime @default(now())
+}
+
+model Faq{
+  id Int @id @default(autoincrement())
+  question String
+  answer String
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+}
