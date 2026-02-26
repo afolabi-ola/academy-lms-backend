@@ -1,0 +1,20 @@
+import z from 'zod';
+
+const CreateSliderSchema = z.object({
+  body: z.object({
+    image: z.string('Image is required'),
+    title: z
+      .string('Title is required')
+      .min(3, 'Title must be at least 3 characters long'),
+    description: z
+      .string('Description is required')
+      .min(10, 'Description must be at least 10 characters long'),
+    isActive: z.boolean().optional(),
+  }),
+});
+
+const UpdateSliderSchema = z.object({
+  body: CreateSliderSchema.shape.body.partial(),
+});
+
+export { CreateSliderSchema, UpdateSliderSchema };
