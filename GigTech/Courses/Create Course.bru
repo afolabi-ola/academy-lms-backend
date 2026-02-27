@@ -1,0 +1,25 @@
+meta {
+  name: Create Course
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{URL}}api/v1/courses
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "title":"Test Course",
+    "description":"first course",
+    "duration":"2",
+    "image":"https://gigtechslider.png"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

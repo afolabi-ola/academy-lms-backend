@@ -1,0 +1,23 @@
+meta {
+  name: Create Slider
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{URL}}api/v1/sliders
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "heading":"Welcome to Gigtech Academy",
+    "imageUrl":"https://gigtechslider.png"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

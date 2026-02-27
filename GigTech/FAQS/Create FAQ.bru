@@ -1,0 +1,23 @@
+meta {
+  name: Create FAQ
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{URL}}api/v1/faqs
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+  "question":"What is gigtech",
+    "answer":"An Academy"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
