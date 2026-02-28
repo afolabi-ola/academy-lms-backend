@@ -18,7 +18,7 @@ export const validate =
         query: req.query,
         params: req.params,
       });
-      console.log(result);
+
       if (!result.success) {
         // const formattedErrors = result.error.issues.map((issue) => {
         //   if (

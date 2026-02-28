@@ -21,8 +21,7 @@ export const register = catchAsync(
     }
 
     const user = await createUser({ name, email, password });
-    console.log({ user });
-    console.log('we are after create user service');
+
     res.status(201).json({
       status: 'success',
       data: {
