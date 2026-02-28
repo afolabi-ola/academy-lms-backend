@@ -24,7 +24,6 @@ export const createUser = async function (user: {
   email: string;
   password: string;
 }) {
-  console.log('We are in create user service');
   const hashedPassword = await hashPassword(user.password);
 
   return await prisma.user.create({
