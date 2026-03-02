@@ -4,7 +4,7 @@
   "main": "app.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "npm install --production=false && tsc",
+    "build": "npm install --production=false && npx prisma generate && tsc",
     "start": "node dist/server.js",
     "migrate:prod": "npx prisma migrate deploy",
     "debug": "tsx --inspect src/server.ts",
