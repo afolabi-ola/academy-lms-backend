@@ -8,19 +8,19 @@ import {
   updateFaq,
   deleteFaq,
 } from '../controllers/faqController';
-import { CreateFaqSchema, UpdateFaqSchema } from '../../validators/faq.schema';
+import { createFaqSchema, updateFaqSchema } from '../../validators/faq.schema';
 
 const router = Router();
 
 router
   .route('/')
   .get(getAllFaqs)
-  .post(validate(CreateFaqSchema), protect, restrictTo('ADMIN'), createFaq);
+  .post(validate(createFaqSchema), protect, restrictTo('ADMIN'), createFaq);
 
 router
   .route('/:id')
   .get(getFaq)
-  .patch(validate(UpdateFaqSchema), protect, restrictTo('ADMIN'), updateFaq)
-  .delete(protect, deleteFaq);
+  .patch(validate(updateFaqSchema), protect, restrictTo('ADMIN'), updateFaq)
+  .delete(protect, restrictTo('ADMIN'), deleteFaq);
 
 export default router;

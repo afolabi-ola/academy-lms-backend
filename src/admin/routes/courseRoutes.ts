@@ -9,8 +9,8 @@ import {
 } from '../controllers/courseController';
 import { protect, restrictTo } from '../controllers/authController';
 import {
-  CreateCourseSchema,
-  UpdateCourseSchema,
+  createCourseSchema,
+  updateCourseSchema,
 } from '../../validators/course.schema';
 
 const router = express.Router();
@@ -18,12 +18,12 @@ const router = express.Router();
 router
   .route('/')
   .get(getAllCourses)
-  .post(validate(CreateCourseSchema), protect, createCourse);
+  .post(validate(createCourseSchema), protect, createCourse);
 
 router
   .route('/:id')
   .get(getCourse)
-  .patch(validate(UpdateCourseSchema), protect, updateCourse)
+  .patch(validate(updateCourseSchema), protect, updateCourse)
   .delete(protect, restrictTo('ADMIN'), deleteCourse);
 
 export default router;

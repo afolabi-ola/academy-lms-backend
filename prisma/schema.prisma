@@ -40,8 +40,7 @@ model Student {
   parentsAddress String
   createdAt      DateTime @default(now())
 
-  courses  Course[] 
-  payments Payment[]
+  enrollments Enrollment[]
 }
 
 model Course {
@@ -54,18 +53,17 @@ model Course {
   isActive    Boolean?  @default(true)
   createdAt   DateTime @default(now())
 
-  students Student[]
+  enrollments Enrollment[]
 }
 
 model Payment {
   id        Int      @id @default(autoincrement())
   amount    Float
   reference String   @unique @default(uuid())
-  status    String
   createdAt DateTime @default(now())
 
-  student   Student  @relation(fields: [studentId], references: [id])
-  studentId Int
+enrollment Enrollment @relation(fields: [enrollmentId],references: [id])
+enrollmentId Int
 }
 
 model User {
@@ -75,6 +73,18 @@ model User {
   password  String
   role      Role @default(SUB_ADMIN)
   createdAt DateTime @default(now())
+}
+
+model Enrollment {
+  id        Int      @id @default(autoincrement())
+  student   Student  @relation(fields: [studentId], references: [id])
+  studentId Int
+  course    Course   @relation(fields: [courseId], references: [id])
+  courseId  Int
+  createdAt DateTime @default(now())
+
+  payments   Payment[]
+  @@unique([studentId, courseId])
 }
 
 enum Role {

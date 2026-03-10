@@ -1,18 +1,19 @@
 meta {
-  name: Update Course
+  name: Create Payment
   type: http
-  seq: 5
+  seq: 12
 }
 
-patch {
-  url: {{URL}}api/v1/courses/1
+post {
+  url: {{URL}}api/v1/payments/
   body: json
   auth: inherit
 }
 
 body:json {
   {
-    "fee":1000
+    "amountReceived":250,
+    "enrollmentId":3
   }
 }
 

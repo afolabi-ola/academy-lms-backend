@@ -34,9 +34,22 @@ export const createStudentSchema = z.object({
     parentsAddress: z
       .string('Parents address is required')
       .min(3, 'Parents address must be at least 3 characters long'),
+    amountReceived: z
+      .number()
+      .positive('Amount received must be a positive number')
+      .min(1, 'Amount received must be at least 1'),
+    courseId: z
+      .number('Course ID is required and must be a number')
+      .min(1, 'Course ID must be a positive integer'),
   }),
 });
 
 export const updateStudentSchema = z.object({
-  body: createStudentSchema.shape.body.partial(),
+  body: createStudentSchema.shape.body
+    .omit({
+      courseId: true,
+      amountReceived: true,
+    })
+    .partial()
+    .strict(),
 });

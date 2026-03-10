@@ -9,8 +9,8 @@ import {
   updateSlider,
 } from '../controllers/sliderController';
 import {
-  CreateSliderSchema,
-  UpdateSliderSchema,
+  createSliderSchema,
+  updateSliderSchema,
 } from '../../validators/slider.schema';
 
 const router = Router();
@@ -19,7 +19,7 @@ router
   .route('/')
   .get(getAllSliders)
   .post(
-    validate(CreateSliderSchema),
+    validate(createSliderSchema),
     protect,
     restrictTo('ADMIN'),
     createSlider,
@@ -29,7 +29,7 @@ router
   .route('/:id')
   .get(getSlider)
   .patch(
-    validate(UpdateSliderSchema),
+    validate(updateSliderSchema),
     protect,
     restrictTo('ADMIN'),
     updateSlider,

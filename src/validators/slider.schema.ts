@@ -1,6 +1,6 @@
 import z from 'zod';
 
-const CreateSliderSchema = z.object({
+const createSliderSchema = z.object({
   body: z.object({
     image: z.string('Image is required'),
     title: z
@@ -13,8 +13,8 @@ const CreateSliderSchema = z.object({
   }),
 });
 
-const UpdateSliderSchema = z.object({
-  body: CreateSliderSchema.shape.body.partial(),
+const updateSliderSchema = z.object({
+  body: createSliderSchema.shape.body.partial(),
 });
 
-export { CreateSliderSchema, UpdateSliderSchema };
+export { createSliderSchema, updateSliderSchema };
