@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const CreateFaqSchema = z.object({
+export const createFaqSchema = z.object({
   body: z.object({
     question: z
       .string('Question is required')
@@ -12,6 +12,6 @@ export const CreateFaqSchema = z.object({
   }),
 });
 
-export const UpdateFaqSchema = z.object({
-  body: CreateFaqSchema.shape.body.partial(),
+export const updateFaqSchema = z.object({
+  body: createFaqSchema.shape.body.partial(),
 });

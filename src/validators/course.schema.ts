@@ -1,6 +1,6 @@
 import z from 'zod';
 
-const CreateCourseSchema = z.object({
+const createCourseSchema = z.object({
   body: z.object({
     image: z.string('Image is required'),
     title: z
@@ -13,11 +13,15 @@ const CreateCourseSchema = z.object({
       .string('Duration is required')
       .min(1, 'Duration must be at least 1 character long'),
     isActive: z.boolean().optional(),
+    fee: z
+      .number('Fee is required and must be a number')
+      .positive('Fee must be a positive number')
+      .min(1, 'Fee must be at least 1'),
   }),
 });
 
-const UpdateCourseSchema = z.object({
-  body: CreateCourseSchema.shape.body.partial(),
+const updateCourseSchema = z.object({
+  body: createCourseSchema.shape.body.partial(),
 });
 
-export { CreateCourseSchema, UpdateCourseSchema };
+export { createCourseSchema, updateCourseSchema };
