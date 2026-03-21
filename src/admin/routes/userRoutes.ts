@@ -12,7 +12,7 @@ const router = express.Router();
 
 router
   .route('/register')
-  .post(validate(registerSchema), protect, restrictTo('ADMIN'), register);
+  .post(protect, restrictTo('ADMIN'), validate(registerSchema), register);
 router.route('/login').post(validate(loginSchema), login);
 
 export default router;
