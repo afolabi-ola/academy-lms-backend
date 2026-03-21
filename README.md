@@ -57,10 +57,20 @@ This documentation reflects the current implementation in the workspace as of 20
 
 - Base URL: `http://localhost:${PORT || 3000}`
 - API Prefix: `/api/v1`
-- Content-Type: `application/json`
+- Content-Type:
+	- `application/json` for non-file endpoints
+	- `multipart/form-data` for image upload endpoints
 - Auth style:
 	- `Authorization: Bearer <token>`
 	- Or auth cookie: `gigtech_auth_token` (or value in `COOKIE_NAME` env)
+- Static uploads are served from: `/uploads/<resource>/<filename>`
+	- students: `/uploads/students/...`
+	- sliders: `/uploads/sliders/...`
+	- courses: `/uploads/courses/...`
+- Image resize presets currently applied by server (`sharp`):
+	- student: 200x300, fit `cover`
+	- slider: 2000x800, fit `cover`
+	- course: 500x800, fit `cover`
 
 ## Quick Endpoint Index
 
@@ -78,9 +88,9 @@ This documentation reflects the current implementation in the workspace as of 20
 | FAQs | PATCH | `/api/v1/faqs/:id` | Yes | `ADMIN` |
 | FAQs | DELETE | `/api/v1/faqs/:id` | Yes | `ADMIN` |
 | Courses | GET | `/api/v1/courses` | No | Public |
-| Courses | POST | `/api/v1/courses` | Yes | Any logged-in user |
+| Courses | POST | `/api/v1/courses` | Yes | `ADMIN` |
 | Courses | GET | `/api/v1/courses/:id` | No | Public |
-| Courses | PATCH | `/api/v1/courses/:id` | Yes | Any logged-in user |
+| Courses | PATCH | `/api/v1/courses/:id` | Yes | `ADMIN` |
 | Courses | DELETE | `/api/v1/courses/:id` | Yes | `ADMIN` |
 | Students | GET | `/api/v1/students` | Yes | `ADMIN`, `SUB_ADMIN` |
 | Students | POST | `/api/v1/students` | Yes | `ADMIN`, `SUB_ADMIN` |
@@ -164,38 +174,39 @@ This documentation reflects the current implementation in the workspace as of 20
 
 `POST/PATCH /api/v1/courses`
 
-```json
-{
-	"image": "string",
-	"title": "min 3 chars",
-	"description": "min 10 chars",
-	"duration": "string, min 1",
-	"fee": "number >= 1",
-	"isActive": true
-}
-```
+- Use `multipart/form-data`.
+- File field:
+	- `image`: image file (`jpg`, `jpeg`, `png`, etc.)
+- Text fields:
+	- `title`: string, min 3
+	- `description`: string, min 10
+	- `duration`: string, min 1
+	- `fee`: number, min 1
+	- `isActive`: optional boolean
+
+Current implementation note:
+- The course validator still includes `image` in the body schema, while the controller reads uploaded file from `req.file`.
 
 ### Student payload
 
 `POST /api/v1/students`
 
-```json
-{
-	"surname": "string, min 3",
-	"firstname": "string, min 3",
-	"otherName": "string, min 3",
-	"dateOfBirth": "valid date string",
-	"email": "valid email",
-	"phone": "string length 11-14",
-	"address": "string, min 3",
-	"photo": "optional string",
-	"parentName": "string, min 3",
-	"parentsPhone": "string length 11-14",
-	"parentsAddress": "string, min 3",
-	"amountReceived": "number >= 1",
-	"courseId": 1
-}
-```
+- Use `multipart/form-data`.
+- Optional file field:
+	- `photo`: image file
+- Text fields:
+	- `surname`: string, min 3
+	- `firstname`: string, min 3
+	- `otherName`: string, min 3
+	- `dateOfBirth`: valid date string (coerced to Date)
+	- `email`: valid email
+	- `phone`: string length 11-14
+	- `address`: string, min 3
+	- `parentName`: string, min 3
+	- `parentsPhone`: string length 11-14
+	- `parentsAddress`: string, min 3
+	- `amountReceived`: number >= 1 (coerced)
+	- `courseId`: positive integer (coerced)
 
 `PATCH /api/v1/students/:id`
 
@@ -240,14 +251,13 @@ This documentation reflects the current implementation in the workspace as of 20
 
 `POST/PATCH /api/v1/sliders`
 
-```json
-{
-	"image": "string",
-	"title": "min 3 chars",
-	"description": "min 10 chars",
-	"isActive": true
-}
-```
+- Use `multipart/form-data`.
+- File field:
+	- `image`: image file
+- Text fields:
+	- `title`: string, min 3
+	- `description`: string, min 10
+	- `isActive`: optional boolean
 
 ## Endpoint Details
 
@@ -298,7 +308,8 @@ This documentation reflects the current implementation in the workspace as of 20
 #### `POST /api/v1/sliders`
 
 - Auth required, role: `ADMIN`.
-- Request body: slider payload.
+- Request type: `multipart/form-data`.
+- Send `image` file + slider text fields.
 - Response `201`:
 
 ```json
@@ -329,7 +340,9 @@ This documentation reflects the current implementation in the workspace as of 20
 #### `PATCH /api/v1/sliders/:id`
 
 - Auth required, role: `ADMIN`.
-- Request body: partial slider payload.
+- Request type: `multipart/form-data`.
+- You can send a new `image` file and/or partial slider text fields.
+- If a new image is uploaded, the old slider image file is deleted from disk.
 - Response `200` returns updated slider under `data`.
 
 <a id="sliders-delete-by-id"></a>
@@ -337,6 +350,7 @@ This documentation reflects the current implementation in the workspace as of 20
 #### `DELETE /api/v1/sliders/:id`
 
 - Auth required, role: `ADMIN`.
+- Deletes both DB record and existing slider image file (if present).
 - Response `200`:
 
 ```json
@@ -443,9 +457,9 @@ This documentation reflects the current implementation in the workspace as of 20
 
 #### `POST /api/v1/courses`
 
-- Auth required.
-- Current route does not enforce role restriction.
-- Request body: course payload.
+- Auth required, role: `ADMIN`.
+- Request type: `multipart/form-data`.
+- Send `image` file + course text fields.
 - Response `201` returns created course in `data`.
 
 <a id="courses-get-by-id"></a>
@@ -460,9 +474,10 @@ This documentation reflects the current implementation in the workspace as of 20
 
 #### `PATCH /api/v1/courses/:id`
 
-- Auth required.
-- Current route does not enforce role restriction.
-- Request body: partial course payload.
+- Auth required, role: `ADMIN`.
+- Request type: `multipart/form-data`.
+- You can send a new `image` file and/or partial course text fields.
+- If a new image is uploaded, the old course image file is deleted from disk.
 - Response `200` returns updated course in `data`.
 
 <a id="courses-delete-by-id"></a>
@@ -470,6 +485,7 @@ This documentation reflects the current implementation in the workspace as of 20
 #### `DELETE /api/v1/courses/:id`
 
 - Auth required, role: `ADMIN`.
+- Deletes both DB record and existing course image file (if present).
 - Response `204` with `data: null`.
 
 ### Students
@@ -479,7 +495,7 @@ This documentation reflects the current implementation in the workspace as of 20
 #### `GET /api/v1/students`
 
 - Auth required, roles: `ADMIN`, `SUB_ADMIN`.
-- Response `200`:
+- Response `200` returns a compact list with selected profile fields and enrollment course titles:
 
 ```json
 {
@@ -488,6 +504,7 @@ This documentation reflects the current implementation in the workspace as of 20
 	"data": {
 		"students": [
 			{
+				"id": 1,
 				"firstname": "John",
 				"surname": "Doe",
 				"otherName": "Junior",
@@ -498,12 +515,7 @@ This documentation reflects the current implementation in the workspace as of 20
 						"createdAt": "2026-03-10T00:00:00.000Z",
 						"course": {
 							"title": "Web Development"
-						},
-						"payment": [
-							{
-								"amount": 30000
-							}
-						]
+						}
 					}
 				]
 			}
@@ -517,13 +529,14 @@ This documentation reflects the current implementation in the workspace as of 20
 #### `POST /api/v1/students`
 
 - Auth required, roles: `ADMIN`, `SUB_ADMIN`.
-- Request body: create student payload.
+- Request type: `multipart/form-data`.
+- Send optional `photo` file + student text fields.
 - Business rules:
 	- Course must exist.
 	- Course must be active.
 	- `amountReceived` must not exceed course fee.
 	- Creates `student`, `enrollment`, and initial `payment` in one transaction.
-- Response `201` returns created student under `data.student`.
+- Response `201` returns created student under `data.student` with `photo` as absolute URL when file exists.
 
 <a id="students-get-by-id"></a>
 
@@ -538,14 +551,17 @@ This documentation reflects the current implementation in the workspace as of 20
 #### `PATCH /api/v1/students/:id`
 
 - Auth required, roles: `ADMIN`, `SUB_ADMIN`.
-- Request body: partial update student payload.
-- Response `200` with updated student under `data.student`.
+- Request type: `multipart/form-data`.
+- Send optional new `photo` file + partial student text fields.
+- If a new photo is uploaded, the old student photo file is deleted from disk.
+- Response `200` with updated student under `data.student` and `photo` as absolute URL when file exists.
 
 <a id="students-delete-by-id"></a>
 
 #### `DELETE /api/v1/students/:id`
 
 - Auth required, roles: `ADMIN`, `SUB_ADMIN`.
+- Deletes both DB record and existing student photo file (if present).
 - Response `204` with `data: null`.
 
 ### Payments
@@ -739,7 +755,10 @@ Includes full debug fields:
 ## Notes About Current Behavior
 
 - `DELETE /api/v1/faqs/:id` is protected and restricted to `ADMIN`.
-- `POST/PATCH /api/v1/courses` require login but currently do not enforce an admin role.
+- `POST/PATCH /api/v1/courses` are protected and restricted to `ADMIN`.
+- Slider, course, and student create/update endpoints support image uploads using `multer` + `sharp`.
+- On image replacement, old files are removed from `public/uploads`; on delete, associated image file is also removed.
+- Read endpoints return absolute image URLs built from request host/protocol.
 - Response envelope structure varies slightly by module (`data` can be an object or direct entity array/object).
 - No pagination, filtering, or sorting query params are implemented yet.
 - All `:id` path params are expected as numeric values.

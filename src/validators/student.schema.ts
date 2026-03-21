@@ -12,9 +12,9 @@ export const createStudentSchema = z.object({
     otherName: z
       .string('Other name is required')
       .min(3, 'Other name must be at least 3 characters long'),
-    dateOfBirth: z.string().refine((date) => !isNaN(Date.parse(date)), {
-      message: 'Date of birth must be a valid date string',
-    }),
+    dateOfBirth: z.coerce
+      .date()
+      .refine((date) => !isNaN(date.getTime()), { message: 'Invalid date' }),
     email: z.email('Email must be a valid email address'),
     phone: z
       .string('Phone number is required')
@@ -23,7 +23,6 @@ export const createStudentSchema = z.object({
     address: z
       .string('Address is required')
       .min(3, 'Address must be at least 3 characters long'),
-    photo: z.string().optional(),
     parentName: z
       .string('Parent name is required')
       .min(3, 'Parent name must be at least 3 characters long'),
@@ -34,12 +33,14 @@ export const createStudentSchema = z.object({
     parentsAddress: z
       .string('Parents address is required')
       .min(3, 'Parents address must be at least 3 characters long'),
-    amountReceived: z
+    amountReceived: z.coerce
       .number()
       .positive('Amount received must be a positive number')
       .min(1, 'Amount received must be at least 1'),
-    courseId: z
+    courseId: z.coerce
       .number('Course ID is required and must be a number')
+      .int()
+      .positive()
       .min(1, 'Course ID must be a positive integer'),
   }),
 });

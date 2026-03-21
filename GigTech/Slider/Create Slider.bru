@@ -6,16 +6,41 @@ meta {
 
 post {
   url: {{URL}}api/v1/sliders
-  body: json
+  body: multipartForm
   auth: inherit
 }
 
 body:json {
   {
-    "title":"Welcome to Gigtech Academy",
-    "image":"https://gigtechslider.png",
-    "description":"This is the best Academy"
+    "heading": "Welcome to Our Academy",
+    "description": "Empowering the next generation of developers."
   }
+  // {
+  //   "imageUrl": "https://example.com/slide2.jpg",
+  //   "heading": "New React Course",
+  //   "description": "Master hooks and state management today."
+  // },
+  // {
+  //   "imageUrl": "https://example.com/slide3.jpg",
+  //   "heading": "Summer Tech Camp",
+  //   "description": "Register your kids for our upcoming coding bootcamp."
+  // },
+  // {
+  //   "imageUrl": "https://example.com/slide4.jpg",
+  //   "heading": "50% Scholarship",
+  //   "description": "Apply now for our merit-based financial aid program."
+  // },
+  // {
+  //   "imageUrl": "https://example.com/slide5.jpg",
+  //   "heading": "Career Fair 2026",
+  //   "description": "Meet top industry recruiters this Friday."
+  // }
+}
+
+body:multipart-form {
+  title: Another Test Slider
+  description: This is the final test for slider image uploads
+  image: @file(/home/olasunkanmi/Desktop/all-js/senior js/images/img5.jpg)
 }
 
 settings {

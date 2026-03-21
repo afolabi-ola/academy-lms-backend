@@ -12,6 +12,9 @@ import {
   createStudentSchema,
   updateStudentSchema,
 } from '../../validators/student.schema';
+import uploadSingleImage, {
+  ImageResource,
+} from '../../middlewares/uploadImage';
 
 const router = express.Router();
 
@@ -19,9 +22,11 @@ router
   .route('/')
   .get(protect, restrictTo('ADMIN', 'SUB_ADMIN'), getAllStudents)
   .post(
-    validate(createStudentSchema),
     protect,
     restrictTo('ADMIN', 'SUB_ADMIN'),
+    ...uploadSingleImage('photo', ImageResource.STUDENT),
+
+    validate(createStudentSchema),
     createStudent,
   );
 
@@ -29,9 +34,10 @@ router
   .route('/:id')
   .get(protect, restrictTo('ADMIN', 'SUB_ADMIN'), getStudent)
   .patch(
-    validate(updateStudentSchema),
     protect,
     restrictTo('ADMIN', 'SUB_ADMIN'),
+    ...uploadSingleImage('photo', ImageResource.STUDENT),
+    validate(updateStudentSchema),
     updateStudent,
   )
   .delete(protect, restrictTo('ADMIN', 'SUB_ADMIN'), deleteStudent);

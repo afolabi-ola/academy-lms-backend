@@ -5,15 +5,14 @@ meta {
 }
 
 patch {
-  url: {{URL}}api/v1/sliders/2
-  body: json
+  url: {{URL}}api/v1/sliders/6
+  body: multipartForm
   auth: inherit
 }
 
-body:json {
-  {
-    "heading":"Slider 1"
-  }
+body:multipart-form {
+  image: @file(/home/olasunkanmi/Pictures/Media/Assets/C@llyn$ 3D IMAGES/laptop-murjp1nk4lp1idlt.jpg)
+  ~title: Another Update Test
 }
 
 settings {

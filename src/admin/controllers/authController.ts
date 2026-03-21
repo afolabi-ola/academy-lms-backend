@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import AppError from '../../utils/appError';
 import { comparePassword, createUser } from '../services/auth.service';
 import { Role } from '../../generated/prisma/client';
-import { registerSchema } from '../../validators/auth.schema';
+
 
 export const register = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {

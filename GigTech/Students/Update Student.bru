@@ -5,8 +5,8 @@ meta {
 }
 
 patch {
-  url: {{URL}}api/v1/students/1
-  body: json
+  url: {{URL}}api/v1/students/2
+  body: multipartForm
   auth: inherit
 }
 
@@ -16,6 +16,10 @@ body:json {
   //   "courseId": 3,
   //   "amountRecieved":10
   }
+}
+
+body:multipart-form {
+  photo: @file(/home/olasunkanmi/Pictures/Media/Assets/C@llyn$ 3D IMAGES/20230503_175431.jpg)
 }
 
 settings {
