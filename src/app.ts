@@ -9,8 +9,30 @@ import enrollmentRouter from './admin/routes/enrollmentRoutes';
 import AppError from './utils/appError';
 import errorController from './middlewares/errorController';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 
 const app = express();
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Accept',
+    ],
+  }),
+);
 
 app.use(cookieParser());
 app.use(express.json());

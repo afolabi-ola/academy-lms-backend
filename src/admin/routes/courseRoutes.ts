@@ -12,18 +12,33 @@ import {
   createCourseSchema,
   updateCourseSchema,
 } from '../../validators/course.schema';
+import uploadSingleImage, {
+  ImageResource,
+} from '../../middlewares/uploadImage';
 
 const router = express.Router();
 
 router
   .route('/')
   .get(getAllCourses)
-  .post(validate(createCourseSchema), protect, createCourse);
+  .post(
+    protect,
+    restrictTo('ADMIN'),
+    ...uploadSingleImage('image', ImageResource.COURSE),
+    validate(createCourseSchema),
+    createCourse,
+  );
 
 router
   .route('/:id')
   .get(getCourse)
-  .patch(validate(updateCourseSchema), protect, updateCourse)
+  .patch(
+    protect,
+    restrictTo('ADMIN'),
+    ...uploadSingleImage('image', ImageResource.COURSE),
+    validate(updateCourseSchema),
+    updateCourse,
+  )
   .delete(protect, restrictTo('ADMIN'), deleteCourse);
 
 export default router;

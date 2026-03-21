@@ -2,6 +2,9 @@ import { NextFunction, Request, Response } from 'express';
 import catchAsync from '../../middlewares/catchAsync';
 import prisma from '../../lib/prisma';
 import AppError from '../../utils/appError';
+import deleteFile from '../../utils/deleteImage';
+import { ResourceFolders } from '../../middlewares/uploadImage';
+import buildImageUrl from '../../utils/buildImageUrl';
 
 
 export const getAllStudents = catchAsync(
@@ -67,10 +70,19 @@ export const getStudent = catchAsync(
       return;
     }
 
+    const imageUrl = buildImageUrl(
+      req,
+      ResourceFolders['student'],
+      student.photo || '',
+    );
+    
     res.status(200).json({
       status: 'success',
       data: {
-        student,
+        student: {
+          ...student,
+          photo: imageUrl,
+        },
       },
     });
   },
@@ -81,7 +93,7 @@ export const createStudent = catchAsync(
     const { courseId, amountReceived, ...studentData } = req.body;
 
     const result = await prisma.$transaction(async (tx) => {
-      const course = await prisma.course.findUnique({
+      const course = await tx.course.findUnique({
         where: {
           id: courseId,
         },
@@ -103,6 +115,7 @@ export const createStudent = catchAsync(
       const student = await tx.student.create({
         data: {
           ...studentData,
+          photo: req.file?.filename,
         },
       });
 
@@ -126,7 +139,10 @@ export const createStudent = catchAsync(
     res.status(201).json({
       status: 'success',
       data: {
-        student: result,
+        student: {
+          ...result,
+          photo: req.imageUrl,
+        },
       },
     });
   },
@@ -135,20 +151,38 @@ export const createStudent = catchAsync(
 export const updateStudent = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { ...studentData } = req.body;
- 
-    const student = await prisma.student.update({
+
+    const student = await prisma.student.findUnique({
+      where: {
+        id: Number(req.params.id),
+      },
+    });
+
+    if (!student) {
+      return next(new AppError('No student found with that ID', 404));
+    }
+
+    const updatedStudent = await prisma.student.update({
       where: {
         id: Number(req.params.id),
       },
       data: {
         ...studentData,
+        photo: req.file?.filename,
       },
     });
+
+    if (req.file?.filename && student.photo) {
+      deleteFile(ResourceFolders['student'], student.photo);
+    }
 
     res.status(200).json({
       status: 'success',
       data: {
-        student,
+        student: {
+          ...updatedStudent,
+          photo: req.imageUrl,
+        },
       },
     });
   },
@@ -156,11 +190,26 @@ export const updateStudent = catchAsync(
 
 export const deleteStudent = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+
+    const student = await prisma.student.findUnique({
+      where: {
+        id: Number(req.params.id),
+      },
+    });
+
+    if (!student) {
+      return next(new AppError('No student found with that ID', 404));
+    }
+    
     await prisma.student.delete({
       where: {
         id: Number(req.params.id),
       },
     });
+    
+    if (student.photo) {
+      deleteFile(ResourceFolders['student'], student.photo);
+    }
 
     res.status(204).json({
       status: 'success',

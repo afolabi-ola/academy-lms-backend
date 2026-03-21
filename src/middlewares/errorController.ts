@@ -130,56 +130,80 @@ const handlePrismaKnownRequestError = (
 /**
  * Extract field-specific error from Prisma validation error message
  */
+// const extractValidationError = (message: string): string => {
+//   // Try to extract the last meaningful error message
+//   const lines = message.split('\n');
+
+//   // Look for "Argument" errors (missing required fields)
+//   const argumentMatch = message.match(/Argument `([^`]+)` is missing/);
+//   if (argumentMatch) {
+//     return `The field '${argumentMatch[1]}' is required`;
+//   }
+
+//   // Look for "Unknown field" errors
+//   const unknownFieldMatch = message.match(/Unknown field: `([^`]+)`/);
+//   if (unknownFieldMatch) {
+//     return `Unknown field '${unknownFieldMatch[1]}' provided`;
+//   }
+
+//   // Look for type mismatch errors
+//   const typeMatch = message.match(
+//     /Argument of type `([^`]+)` is not assignable/,
+//   );
+//   if (typeMatch) {
+//     return `Invalid field type provided`;
+//   }
+
+//   // Look for type expected errors
+//   const expectedTypeMatch = message.match(
+//     /`([^`]+)` Argument of type `([^`]+)` is not assignable to parameter/,
+//   );
+//   if (expectedTypeMatch) {
+//     return `Field '${expectedTypeMatch[1]}' has invalid type`;
+//   }
+
+//   // Extract from the last meaningful line that contains actual error info
+//   for (let i = lines.length - 1; i >= 0; i--) {
+//     const line = lines[i];
+//     if (
+//       line &&
+//       !line.startsWith('{') &&
+//       !line.startsWith('}') &&
+//       !line.startsWith('+') &&
+//       !line.startsWith('data:')
+//       // &&
+//       // !line.includes('Invalid') &&
+//       // !line.includes('invocation')
+//     ) {
+//       return line.trim();
+//     }
+//   }
+
+//   return 'Invalid input data provided';
+// };
+
 const extractValidationError = (message: string): string => {
-  // Try to extract the last meaningful error message
-  const lines = message.split('\n');
-
-  // Look for "Argument" errors (missing required fields)
-  const argumentMatch = message.match(/Argument `([^`]+)` is missing/);
-  if (argumentMatch) {
-    return `The field '${argumentMatch[1]}' is required`;
+  // Missing required field
+  const missingField = message.match(/Argument `([^`]+)` is missing/);
+  if (missingField) {
+    return `The field '${missingField[1]}' is required`;
   }
 
-  // Look for "Unknown field" errors
-  const unknownFieldMatch = message.match(/Unknown field: `([^`]+)`/);
-  if (unknownFieldMatch) {
-    return `Unknown field '${unknownFieldMatch[1]}' provided`;
+  // Invalid value
+  const invalidValue = message.match(/Invalid value for argument `([^`]+)`/);
+  if (invalidValue) {
+    return `Invalid value provided for '${invalidValue[1]}'`;
   }
 
-  // Look for type mismatch errors
-  const typeMatch = message.match(
-    /Argument of type `([^`]+)` is not assignable/,
-  );
-  if (typeMatch) {
-    return `Invalid field type provided`;
+  // Unknown field
+  const unknownField = message.match(/Unknown field: `([^`]+)`/);
+  if (unknownField) {
+    return `Unknown field '${unknownField[1]}'`;
   }
 
-  // Look for type expected errors
-  const expectedTypeMatch = message.match(
-    /`([^`]+)` Argument of type `([^`]+)` is not assignable to parameter/,
-  );
-  if (expectedTypeMatch) {
-    return `Field '${expectedTypeMatch[1]}' has invalid type`;
-  }
-
-  // Extract from the last meaningful line that contains actual error info
-  for (let i = lines.length - 1; i >= 0; i--) {
-    const line = lines[i];
-    if (
-      line &&
-      !line.startsWith('{') &&
-      !line.startsWith('}') &&
-      !line.startsWith('+') &&
-      !line.startsWith('data:') &&
-      !line.includes('Invalid') &&
-      !line.includes('invocation')
-    ) {
-      return line.trim();
-    }
-  }
-
+  // Fallback
   return 'Invalid input data provided';
-};
+};;;;
 
 /**
  * Handle Prisma Validation Errors
