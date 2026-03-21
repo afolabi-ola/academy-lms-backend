@@ -2,7 +2,6 @@ import z from 'zod';
 
 const createCourseSchema = z.object({
   body: z.object({
-    image: z.string('Image is required'),
     title: z
       .string('Title is required')
       .min(3, 'Title must be at least 3 characters long'),

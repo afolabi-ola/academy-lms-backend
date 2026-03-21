@@ -13,7 +13,7 @@ const router = Router();
 router
   .route('/')
   .get(protect, getAllEnrollments)
-  .post(validate(createEnrollmentSchema), protect, createEnrollment);
+  .post(protect, validate(createEnrollmentSchema), createEnrollment);
 router.route('/:id').get(protect, getEnrollment);
 
 export default router;

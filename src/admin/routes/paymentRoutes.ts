@@ -13,7 +13,7 @@ const router = express.Router();
 router
   .route('/')
   .get(protect, getAllPayments)
-  .post(validate(createPaymentSchema), protect, createPayment);
+  .post(protect, validate(createPaymentSchema), createPayment);
 
 router.route('/:id').get(protect, getPayment);
 
