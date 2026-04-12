@@ -8,7 +8,7 @@ const createSliderSchema = z.object({
     description: z
       .string('Description is required')
       .min(10, 'Description must be at least 10 characters long'),
-    isActive: z.boolean().optional(),
+    isActive: z.coerce.boolean().optional(),
   }),
 });
 

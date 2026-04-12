@@ -1,0 +1,26 @@
+meta {
+  name: Get Dashboard
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{URL}}api/v1/dashboard?range=month
+  body: none
+  auth: inherit
+}
+
+params:query {
+  range: month
+  ~range: custom
+  ~from: 2026-03-24
+  ~to: 2026-04-08
+  ~range: today
+  ~range: week
+  ~range: year
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

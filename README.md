@@ -1,6 +1,6 @@
 # GigTech Backend API Documentation
 
-This documentation reflects the current implementation in the workspace as of 2026-03-10.
+This documentation reflects the current implementation in the workspace as of 2026-04-12.
 
 ## Table of Contents
 
@@ -10,6 +10,7 @@ This documentation reflects the current implementation in the workspace as of 20
 - [Validation Rules (Current)](#validation-rules-current)
 - [Endpoint Details](#endpoint-details)
 - [Endpoint Quick Links](#endpoint-quick-links)
+- [Dashboard](#dashboard)
 - [Health](#health)
 - [Sliders](#sliders)
 - [FAQs](#faqs)
@@ -26,6 +27,7 @@ This documentation reflects the current implementation in the workspace as of 20
 - [POST /api/v1/users/login](#users-post-login)
 - [POST /api/v1/users/register](#users-post-register)
 - [GET /](#health-get-root)
+- [GET /api/v1/dashboard](#dashboard-get)
 - [GET /api/v1/sliders](#sliders-get)
 - [POST /api/v1/sliders](#sliders-post)
 - [GET /api/v1/sliders/:id](#sliders-get-by-id)
@@ -77,6 +79,7 @@ This documentation reflects the current implementation in the workspace as of 20
 | Module | Method | Endpoint | Auth | Role |
 | --- | --- | --- | --- | --- |
 | Health | GET | `/` | No | Public |
+| Dashboard | GET | `/api/v1/dashboard` | Yes | Any logged-in user |
 | Sliders | GET | `/api/v1/sliders` | No | Public |
 | Sliders | POST | `/api/v1/sliders` | Yes | `ADMIN` |
 | Sliders | GET | `/api/v1/sliders/:id` | No | Public |
@@ -185,7 +188,22 @@ This documentation reflects the current implementation in the workspace as of 20
 	- `isActive`: optional boolean
 
 Current implementation note:
-- The course validator still includes `image` in the body schema, while the controller reads uploaded file from `req.file`.
+- `image` is handled as multipart file upload (`req.file`) while the validator checks text fields from the request body.
+
+### Dashboard query params
+
+`GET /api/v1/dashboard`
+
+- Optional query params:
+	- `range`: one of `today`, `week`, `month`, `year`, `custom`
+	- `from`: date string
+	- `to`: date string
+- Query validation is enforced with Zod (`getDashboardSchema`) and returns `400` on invalid input.
+- Validation rules:
+	- If `range=custom`, both `from` and `to` are required.
+	- `from` and `to` must be provided together when either is present.
+	- `from` and `to` must be valid date strings.
+	- `from` cannot be later than `to`.
 
 ### Student payload
 
@@ -260,6 +278,80 @@ Current implementation note:
 	- `isActive`: optional boolean
 
 ## Endpoint Details
+
+### Dashboard
+
+<a id="dashboard-get"></a>
+
+#### `GET /api/v1/dashboard`
+
+- Auth required (any logged-in user).
+- Query params:
+	- `range`: `today` | `week` | `month` | `year` | `custom`
+	- `from`: ISO date string
+	- `to`: ISO date string
+- Query validation rules:
+	- If `range=custom`, both `from` and `to` are required.
+	- `from` and `to` must be provided together.
+	- Both must be valid dates.
+	- `from` must be less than or equal to `to`.
+- Response `200`:
+
+```json
+{
+	"status": "success",
+	"data": {
+		"range": "month",
+		"from": "2026-04-01T00:00:00.000Z",
+		"to": "2026-04-12T10:00:00.000Z",
+		"overview": {
+			"totalStudents": 42,
+			"activeStudents": 38,
+			"totalCourses": 8,
+			"activeCourses": 6,
+			"totalEnrollments": 55,
+			"totalPaymentsReceived": 250000,
+			"totalOutstandingBalance": 50000
+		},
+		"paymentStatusSummary": {
+			"fullyPaid": 20,
+			"partiallyPaid": 25,
+			"unpaid": 10
+		},
+		"recents": {
+			"payments": {
+				"results": 5,
+				"data": []
+			},
+			"enrollments": {
+				"results": 5,
+				"data": []
+			}
+		},
+		"courseStats": {
+			"results": 3,
+			"data": [
+				{
+					"title": "Web Development",
+					"totalEnrolled": 12,
+					"expectedRevenue": 600000,
+					"actualRevenue": 450000,
+					"outstandingBalance": 150000
+				}
+			]
+		}
+	}
+}
+```
+
+Possible error cases:
+- `400` validation error when query rules are violated.
+- Common messages include:
+	- `` `from` and `to` are required when range is custom ``
+	- `` `from` and `to` must be provided together ``
+	- `` `from` must be a valid date string ``
+	- `` `to` must be a valid date string ``
+	- `` `from` cannot be later than `to` ``
 
 ### Health
 
@@ -759,6 +851,7 @@ Includes full debug fields:
 - Slider, course, and student create/update endpoints support image uploads using `multer` + `sharp`.
 - On image replacement, old files are removed from `public/uploads`; on delete, associated image file is also removed.
 - Read endpoints return absolute image URLs built from request host/protocol.
+- `GET /api/v1/dashboard` supports date-based filtering using `range` and optional `from`/`to` (for `custom`).
 - Response envelope structure varies slightly by module (`data` can be an object or direct entity array/object).
 - No pagination, filtering, or sorting query params are implemented yet.
 - All `:id` path params are expected as numeric values.
