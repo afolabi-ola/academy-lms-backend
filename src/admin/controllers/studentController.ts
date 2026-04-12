@@ -190,7 +190,6 @@ export const updateStudent = catchAsync(
 
 export const deleteStudent = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-
     const student = await prisma.student.findUnique({
       where: {
         id: Number(req.params.id),
@@ -200,13 +199,22 @@ export const deleteStudent = catchAsync(
     if (!student) {
       return next(new AppError('No student found with that ID', 404));
     }
-    
-    await prisma.student.delete({
+
+    // await prisma.student.delete({
+    //   where: {
+    //     id: Number(req.params.id),
+    //   },
+    // });
+
+    await prisma.student.update({
       where: {
         id: Number(req.params.id),
       },
+      data: {
+        active: false,
+      },
     });
-    
+
     if (student.photo) {
       deleteFile(ResourceFolders['student'], student.photo);
     }

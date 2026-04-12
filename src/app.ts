@@ -1,4 +1,5 @@
 import express from 'express';
+import dashboardRouter from './admin/routes/dashboardRoutes';
 import sliderRouter from './web/routes/sliderRoute';
 import faqRouter from './web/routes/faqRoutes';
 import courseRouter from './admin/routes/courseRoutes';
@@ -10,12 +11,16 @@ import AppError from './utils/appError';
 import errorController from './middlewares/errorController';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import { parse } from 'qs';
+
 
 const app = express();
 
 const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3001',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
 ];
@@ -35,6 +40,7 @@ app.use(
 );
 
 app.use(cookieParser());
+app.set('query parser', (str: string) => parse(str));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
@@ -46,6 +52,7 @@ app.get('/', (req, res) => {
   });
 });
 
+app.use('/api/v1/dashboard', dashboardRouter);
 app.use('/api/v1/sliders', sliderRouter);
 app.use('/api/v1/faqs', faqRouter);
 app.use('/api/v1/courses', courseRouter);
