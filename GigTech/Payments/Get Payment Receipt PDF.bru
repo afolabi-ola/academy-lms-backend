@@ -1,11 +1,11 @@
 meta {
-  name: Online
+  name: Get Payment Receipt PDF
   type: http
-  seq: 9
+  seq: 5
 }
 
 get {
-  url: https://gigtech-backend-fork.onrender.com/api/v1/dashboard
+  url: {{URL}}api/v1/payments/1/receipt/pdf
   body: none
   auth: inherit
 }

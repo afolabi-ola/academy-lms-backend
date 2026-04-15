@@ -1,6 +1,6 @@
 # GigTech Backend API Documentation
 
-This documentation reflects the current implementation in the workspace as of 2026-04-12.
+This documentation reflects the current implementation in the workspace as of 2026-04-15.
 
 ## Table of Contents
 
@@ -51,6 +51,8 @@ This documentation reflects the current implementation in the workspace as of 20
 - [GET /api/v1/payments](#payments-get)
 - [POST /api/v1/payments](#payments-post)
 - [GET /api/v1/payments/:id](#payments-get-by-id)
+- [GET /api/v1/payments/:id/receipt](#payments-get-receipt-by-id)
+- [GET /api/v1/payments/:id/receipt/pdf](#payments-get-receipt-pdf-by-id)
 - [GET /api/v1/enrollments](#enrollments-get)
 - [POST /api/v1/enrollments](#enrollments-post)
 - [GET /api/v1/enrollments/:id](#enrollments-get-by-id)
@@ -103,6 +105,8 @@ This documentation reflects the current implementation in the workspace as of 20
 | Payments | GET | `/api/v1/payments` | Yes | Any logged-in user |
 | Payments | POST | `/api/v1/payments` | Yes | Any logged-in user |
 | Payments | GET | `/api/v1/payments/:id` | Yes | Any logged-in user |
+| Payments | GET | `/api/v1/payments/:id/receipt` | Yes | Any logged-in user |
+| Payments | GET | `/api/v1/payments/:id/receipt/pdf` | Yes | Any logged-in user |
 | Users | POST | `/api/v1/users/login` | No | Public |
 | Users | POST | `/api/v1/users/register` | Yes | `ADMIN` |
 | Enrollments | GET | `/api/v1/enrollments` | Yes | Any logged-in user |
@@ -685,6 +689,37 @@ Possible error cases:
 - Response `200` with payment details under `data.payment`.
 - If not found: `404` with `Payment not found`.
 
+<a id="payments-get-receipt-by-id"></a>
+
+#### `GET /api/v1/payments/:id/receipt`
+
+- Auth required.
+- Returns receipt summary JSON under `data.receipt`.
+- Receipt fields currently include:
+	- `receiptId`
+	- `paymentReferenceId`
+	- `student`
+	- `course`
+	- `courseFee`
+	- `amount`
+	- `totalPaid`
+	- `balance`
+	- `date`
+- If payment does not exist: `404` with `Payment not found`.
+
+<a id="payments-get-receipt-pdf-by-id"></a>
+
+#### `GET /api/v1/payments/:id/receipt/pdf`
+
+- Auth required.
+- Generates receipt PDF using server-side `puppeteer`.
+- Response `200`:
+	- `Content-Type: application/pdf`
+	- `Content-Disposition: attachment; filename=receipt-<receiptId>.pdf`
+	- Binary PDF body
+- Uses logo watermark/source image from `/uploads/siteSettings/logo.png`.
+- If payment does not exist: `404` with `Payment not found`.
+
 ### Enrollments
 
 <a id="enrollments-get"></a>
@@ -852,6 +887,9 @@ Includes full debug fields:
 - On image replacement, old files are removed from `public/uploads`; on delete, associated image file is also removed.
 - Read endpoints return absolute image URLs built from request host/protocol.
 - `GET /api/v1/dashboard` supports date-based filtering using `range` and optional `from`/`to` (for `custom`).
+- Payment module now exposes receipt endpoints:
+	- JSON receipt: `GET /api/v1/payments/:id/receipt` (protected)
+	- PDF receipt download: `GET /api/v1/payments/:id/receipt/pdf` (protected)
 - Response envelope structure varies slightly by module (`data` can be an object or direct entity array/object).
 - No pagination, filtering, or sorting query params are implemented yet.
 - All `:id` path params are expected as numeric values.
