@@ -2,6 +2,11 @@ import { NextFunction, Response, Request } from 'express';
 import catchAsync from '../../middlewares/catchAsync';
 import prisma from '../../lib/prisma';
 import AppError from '../../utils/appError';
+import {
+  buildReceiptHTML,
+  generatePDF,
+  getPaymentReceiptData,
+} from '../services/payment.service';
 
 export const getAllPayments = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -122,5 +127,48 @@ export const createPayment = catchAsync(
         payment,
       },
     });
+  },
+);
+
+export const getPaymentReceipt = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+
+    const receipt = await getPaymentReceiptData(id as string);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        receipt,
+      },
+    });
+  },
+);
+
+export const getPaymentReceiptPDF = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+
+    const receipt = await getPaymentReceiptData(id as string);
+
+    if (!receipt) {
+      return next(new AppError('Failed to create receipt data', 400));
+    }
+
+    const logoUrl = `${req.protocol}://${req.get('host')}/uploads/siteSettings/logo.png`;
+
+    const receiptHTML = buildReceiptHTML(receipt, logoUrl);
+
+    // Here you would implement the logic to convert the HTML to PDF and send it as a response
+    // For example, you could use a library like puppeteer to generate the PDF from the HTML
+
+    const pdfBuffer = await generatePDF(receiptHTML);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename=receipt-${receipt.receiptId}.pdf`,
+    });
+
+    res.send(pdfBuffer);
   },
 );

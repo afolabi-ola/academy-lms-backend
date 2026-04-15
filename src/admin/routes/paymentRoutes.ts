@@ -3,6 +3,8 @@ import {
   createPayment,
   getAllPayments,
   getPayment,
+  getPaymentReceipt,
+  getPaymentReceiptPDF,
 } from '../controllers/paymentController';
 import { protect } from '../controllers/authController';
 import { validate } from '../../middlewares/validate';
@@ -16,5 +18,8 @@ router
   .post(protect, validate(createPaymentSchema), createPayment);
 
 router.route('/:id').get(protect, getPayment);
+
+router.route('/:id/receipt').get(protect, getPaymentReceipt);
+router.route('/:id/receipt/pdf').get(protect, getPaymentReceiptPDF);
 
 export default router;
