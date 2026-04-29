@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from 'express';
 import catchAsync from '../../middlewares/catchAsync';
 import prisma from '../../lib/prisma';
 import AppError from '../../utils/appError';
+import buildImageUrl from '../../utils/buildImageUrl';
+import { ResourceFolders } from '../../middlewares/uploadImage';
 
 export const getAllEnrollments = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -65,8 +67,22 @@ export const getEnrollment = catchAsync(
           ? 'Partially Paid'
           : 'Unpaid';
 
+    const enrollmentWithPhoto = enrollment.student.photo
+      ? {
+          ...enrollment,
+          student: {
+            ...enrollment.student,
+            photo: buildImageUrl(
+              req,
+              ResourceFolders['student'],
+              enrollment.student.photo,
+            ),
+          },
+        }
+      : enrollment;
+
     const enrollmentWithPayment = {
-      ...enrollment,
+      ...enrollmentWithPhoto,
       paymentSummary: {
         totalAmountPaid,
         balance,

@@ -17,6 +17,7 @@ export const getAllStudents = catchAsync(
         otherName: true,
         email: true,
         phone: true,
+        photo: true,
         enrollments: {
           select: {
             createdAt: true,
@@ -36,11 +37,25 @@ export const getAllStudents = catchAsync(
       },
     });
 
+    const studentsWithPhoto = students.map((student) =>
+      student.photo
+        ? {
+            ...student,
+            photo: buildImageUrl(
+              req,
+              ResourceFolders['student'],
+              student.photo,
+            ),
+          }
+        : student,
+    );
+    
+      
     res.status(200).json({
       status: 'success',
       results: students.length,
       data: {
-        students,
+        students: studentsWithPhoto,
       },
     });
   },
