@@ -18,6 +18,7 @@ export const getAllPayments = catchAsync(
         reference: true,
         enrollment: {
           select: {
+            id: true,
             student: {
               select: {
                 surname: true,
