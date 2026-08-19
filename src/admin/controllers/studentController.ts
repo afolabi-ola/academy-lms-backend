@@ -5,6 +5,7 @@ import AppError from '../../utils/appError';
 import deleteFile from '../../utils/deleteImage';
 import { ResourceFolders } from '../../middlewares/uploadImage';
 import buildImageUrl from '../../utils/buildImageUrl';
+import { sendEmail } from '../../utils/email';
 
 
 export const getAllStudents = catchAsync(
@@ -90,7 +91,15 @@ export const getStudent = catchAsync(
       ResourceFolders['student'],
       student.photo || '',
     );
-    
+
+    // if (student) {
+    //   await sendEmail(
+    //     student.email,
+    //     'Welcome to GigTech Academy!',
+    //     `Dear ${student.firstname},\n\nThank you for enrolling in our course! We are excited to have you on board and look forward to helping you achieve your learning goals.\n\nBest regards,\nGigTech Academy Teams`,
+    //   );
+    // }
+
     res.status(200).json({
       status: 'success',
       data: {
@@ -100,6 +109,16 @@ export const getStudent = catchAsync(
         },
       },
     });
+
+    if (student) {
+      await sendEmail(
+        student.email,
+        'Welcome to GigTech Academy!',
+        `Dear ${student.firstname},\n\nThank you for enrolling in our course! We are excited to have you on board and look forward to helping you achieve your learning goals.\n\nBest regards,\nGigTech Academy Teams`,
+      ).catch((error) => {
+        console.error('Email failed:', error);
+      });
+    }
   },
 );
 
@@ -151,6 +170,7 @@ export const createStudent = catchAsync(
       return student;
     });
 
+    
     res.status(201).json({
       status: 'success',
       data: {
@@ -160,6 +180,16 @@ export const createStudent = catchAsync(
         },
       },
     });
+
+    if (result) {
+      await sendEmail(
+        result.email,
+        'Welcome to GigTech Academy!',
+        `Dear ${result.firstname},\n\nThank you for enrolling in our course! We are excited to have you on board and look forward to helping you achieve your learning goals.\n\nBest regards,\nGigTech Academy Teams`,
+      ).catch((err) => {
+        console.error('Email Failed:', err);
+      });
+    }
   },
 );
 
