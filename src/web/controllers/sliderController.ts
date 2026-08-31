@@ -3,24 +3,17 @@ import prisma from '../../lib/prisma';
 import catchAsync from '../../middlewares/catchAsync';
 import AppError from '../../utils/appError';
 import { ResourceFolders } from '../../middlewares/uploadImage';
-import buildImageUrl from '../../utils/buildImageUrl';
-import deleteFile from '../../utils/deleteImage';
+import { deleteFromCloudinary, uploadToCloudinary } from '../../utils/helpers';
 
 
 export const getAllSliders = catchAsync(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const sliders = await prisma.slider.findMany();
 
-      const slidersWithUrls = sliders.map((slider) => ({
-        ...slider,
-        image:
-          buildImageUrl(req, ResourceFolders['slider'], slider.image) || null,
-      }));
-
     res.status(200).json({
       results: sliders.length,
       status: 'success',
-      data: slidersWithUrls,
+      data: sliders,
     });
   },
 );
@@ -31,24 +24,40 @@ export const createSlider = catchAsync(
 
     const slider = await prisma.slider.create({
       data: {
-        image: req.file?.filename || '',
+        image: '',
         title,
         description,
+        publicId: '',
       },
     });
 
-    const sliderImageUrl = buildImageUrl(
-      req,
+    if (!req.file?.buffer) {
+      res.status(201).json({
+        status: 'success',
+        data: slider,
+      });
+      return;
+    }
+
+    const { secure_url, publicId } = await uploadToCloudinary(
+      req?.file?.buffer,
       ResourceFolders['slider'],
-      slider.image,
+      slider.id.toString(),
     );
+
+    const updatedSlider = await prisma.slider.update({
+      where: {
+        id: slider.id,
+      },
+      data: {
+        image: secure_url, // Use the image URL from the request
+        publicId, // Use the public ID from the request
+      },
+    });
 
     res.status(201).json({
       status: 'success',
-      data: {
-        ...slider,
-        image: sliderImageUrl,
-      },
+      data: updatedSlider,
     });
   },
 );
@@ -67,19 +76,9 @@ export const getSlider = catchAsync(
       return next(new AppError('No slider found with that ID', 404));
     }
 
-    const sliderImageUrl = buildImageUrl(
-      req,
-      ResourceFolders['slider'],
-      slider.image,
-    );
-
-
     res.status(200).json({
       status: 'success',
-      data: {
-        ...slider,
-        image: sliderImageUrl,
-      },
+      data: slider,
     });
   },
 );
@@ -98,40 +97,36 @@ export const updateSlider = catchAsync(
       return next(new AppError('No slider found with that ID', 404));
     }
 
-    const data = {
-      ...req.body,
-      image: req.file?.filename,
-    };
+    let imageUrl = existingSlider.image;
+    let publicId = existingSlider.publicId;
+
+    if (req.file?.buffer) {
+      const { secure_url, publicId: newPublicId } = await uploadToCloudinary(
+        req.file.buffer,
+        ResourceFolders['slider'],
+        existingSlider.id.toString(),
+      );
+
+      imageUrl = secure_url;
+      publicId = newPublicId;
+    }
 
     const slider = await prisma.slider.update({
       where: {
         id: Number(reqId),
       },
-      data,
+      data: {
+        ...req.body,
+        image: imageUrl || existingSlider.image,
+        publicId: publicId || existingSlider.publicId,
+      },
     });
-
-    if (!slider) {
-      return next(new AppError('No slider found with that ID', 404));
-    }
-
-    if (req.file?.filename && existingSlider.image) {
-      deleteFile(ResourceFolders['slider'], existingSlider.image);
-    }
-
-    const sliderImageUrl = buildImageUrl(
-      req,
-      ResourceFolders['slider'],
-      slider.image,
-    );
 
     res.status(200).json({
       status: 'success',
-      data: {
-        ...slider,
-        image: sliderImageUrl,
-      },
+      data: slider,
     });
-  },
+  }
 );
 
 export const deleteSlider = catchAsync(
@@ -147,16 +142,16 @@ export const deleteSlider = catchAsync(
     if (!slider) {
       return next(new AppError('No slider found with that ID', 404));
     }
-    
+
+    if (slider.publicId) {
+      await deleteFromCloudinary(slider.publicId);
+    }
+
     await prisma.slider.delete({
       where: {
         id: Number(reqId),
       },
     });
-    
-    if (slider.image) {
-      deleteFile(ResourceFolders['slider'], slider.image);
-    }
 
     res.status(200).json({
       status: 'success',

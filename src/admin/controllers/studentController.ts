@@ -2,10 +2,9 @@ import { NextFunction, Request, Response } from 'express';
 import catchAsync from '../../middlewares/catchAsync';
 import prisma from '../../lib/prisma';
 import AppError from '../../utils/appError';
-import deleteFile from '../../utils/deleteImage';
 import { ResourceFolders } from '../../middlewares/uploadImage';
-import buildImageUrl from '../../utils/buildImageUrl';
 import { sendEmail } from '../../utils/email';
+import { uploadToCloudinary } from '../../utils/helpers';
 
 
 export const getAllStudents = catchAsync(
@@ -38,25 +37,11 @@ export const getAllStudents = catchAsync(
       },
     });
 
-    const studentsWithPhoto = students.map((student) =>
-      student.photo
-        ? {
-            ...student,
-            photo: buildImageUrl(
-              req,
-              ResourceFolders['student'],
-              student.photo,
-            ),
-          }
-        : student,
-    );
-    
-      
     res.status(200).json({
       status: 'success',
       results: students.length,
       data: {
-        students: studentsWithPhoto,
+        students: students,
       },
     });
   },
@@ -86,27 +71,10 @@ export const getStudent = catchAsync(
       return;
     }
 
-    const imageUrl = buildImageUrl(
-      req,
-      ResourceFolders['student'],
-      student.photo || '',
-    );
-
-    // if (student) {
-    //   await sendEmail(
-    //     student.email,
-    //     'Welcome to GigTech Academy!',
-    //     `Dear ${student.firstname},\n\nThank you for enrolling in our course! We are excited to have you on board and look forward to helping you achieve your learning goals.\n\nBest regards,\nGigTech Academy Teams`,
-    //   );
-    // }
-
     res.status(200).json({
       status: 'success',
       data: {
-        student: {
-          ...student,
-          photo: imageUrl,
-        },
+        student: student,
       },
     });
 
@@ -119,7 +87,7 @@ export const getStudent = catchAsync(
         console.error('Email failed:', error);
       });
     }
-  },
+  }
 );
 
 export const createStudent = catchAsync(
@@ -149,7 +117,8 @@ export const createStudent = catchAsync(
       const student = await tx.student.create({
         data: {
           ...studentData,
-          photo: req.file?.filename,
+          photo:
+            'https://res.cloudinary.com/gneyjc4o/image/upload/v1787933090/user_fqwnvn.jpg',
         },
       });
 
@@ -170,15 +139,35 @@ export const createStudent = catchAsync(
       return student;
     });
 
-    
+    if (!req.file?.buffer) {
+      res.status(201).json({
+        status: 'success',
+        data: {
+          student: result,
+        },
+      });
+      return;
+    }
+
+    const { secure_url, publicId } = await uploadToCloudinary(
+      req.file.buffer,
+      ResourceFolders['student'],
+      result.id.toString(),
+    );
+
+    const updatedStudent = await prisma.student.update({
+      where: {
+        id: result.id,
+      },
+      data: {
+        photo: secure_url,
+        publicId,
+      },
+    });
+
     res.status(201).json({
       status: 'success',
-      data: {
-        student: {
-          ...result,
-          photo: req.imageUrl,
-        },
-      },
+      data: { student: updatedStudent },
     });
 
     if (result) {
@@ -207,27 +196,34 @@ export const updateStudent = catchAsync(
       return next(new AppError('No student found with that ID', 404));
     }
 
+    let imageUrl: string | undefined;
+    let publicId: string | undefined;
+    if (req.file?.buffer) {
+      const { secure_url, publicId: newPublicId } = await uploadToCloudinary(
+        req.file.buffer,
+        ResourceFolders['student'],
+        student.id.toString(),
+      );
+      imageUrl = secure_url;
+      publicId = newPublicId;
+    }
+
     const updatedStudent = await prisma.student.update({
       where: {
         id: Number(req.params.id),
       },
       data: {
         ...studentData,
-        photo: req.file?.filename,
+        photo: imageUrl || student.photo,
+        publicId: publicId || student.publicId,
       },
     });
 
-    if (req.file?.filename && student.photo) {
-      deleteFile(ResourceFolders['student'], student.photo);
-    }
 
     res.status(200).json({
       status: 'success',
       data: {
-        student: {
-          ...updatedStudent,
-          photo: req.imageUrl,
-        },
+        student: updatedStudent,
       },
     });
   },
@@ -245,12 +241,6 @@ export const deleteStudent = catchAsync(
       return next(new AppError('No student found with that ID', 404));
     }
 
-    // await prisma.student.delete({
-    //   where: {
-    //     id: Number(req.params.id),
-    //   },
-    // });
-
     await prisma.student.update({
       where: {
         id: Number(req.params.id),
@@ -260,9 +250,6 @@ export const deleteStudent = catchAsync(
       },
     });
 
-    if (student.photo) {
-      deleteFile(ResourceFolders['student'], student.photo);
-    }
 
     res.status(204).json({
       status: 'success',

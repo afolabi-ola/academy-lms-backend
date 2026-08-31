@@ -12,6 +12,7 @@ model Slider {
   id          Int      @id @default(autoincrement())
   image    String
   title     String
+  publicId  String
   description String
   isActive  Boolean?  @default(true)
   createdAt   DateTime @default(now())
@@ -35,6 +36,7 @@ model Student {
   phone          String
   address        String
   photo          String?
+  publicId       String?
   parentName     String
   parentsPhone   String
   parentsAddress String
@@ -47,6 +49,7 @@ model Student {
 model Course {
   id          Int      @id @default(autoincrement())
   image    String
+  publicId  String
   title       String
   description String
   duration    String
