@@ -11,13 +11,23 @@ const createCourseSchema = z.object({
     duration: z
       .string('Duration is required')
       .min(1, 'Duration must be at least 1 character long'),
-    isActive: z.boolean().optional(),
-    fee: z
-      .number('Fee is required and must be a number')
+    // isActive: z.boolean().optional(),
+    // fee: z
+    //   .number('Fee is required and must be a number')
+    //   .positive('Fee must be a positive number')
+    //   .min(1, 'Fee must be at least 1'),
+
+    // Automatically converts "true" to true, "false" to false
+    isActive: z.coerce.boolean().optional(),
+
+    // Automatically converts "49.99" to a JavaScript number
+    fee: z.coerce
+      .number({ error: 'Fee must be a valid number' })
       .positive('Fee must be a positive number')
       .min(1, 'Fee must be at least 1'),
   }),
 });
+
 
 const updateCourseSchema = z.object({
   body: createCourseSchema.shape.body.partial(),

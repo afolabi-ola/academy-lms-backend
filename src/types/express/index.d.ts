@@ -8,7 +8,8 @@ declare global {
         email: string;
         role: 'ADMIN' | 'SUB_ADMIN';
       };
-      imageUrl: string;
+      imagePublicId?: string;
+      imageUrl?: string;
     }
   }
 }

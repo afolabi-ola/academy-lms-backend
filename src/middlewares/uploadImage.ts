@@ -3,7 +3,6 @@ import catchAsync from './catchAsync';
 import multer from 'multer';
 import sharp from 'sharp';
 import AppError from '../utils/appError';
-import buildImageUrl from '../utils/buildImageUrl';
 
 export enum ImageResource {
   STUDENT = 'student',
@@ -72,22 +71,16 @@ const resizeImage = (resource: keyof typeof IMAGE_PRESETS) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     if (!req.file) return next();
 
-    const filename = `${resource}-${Date.now()}-${Math.round(
-      Math.random() * 1e9,
-    )}.jpeg`;
-
-    await sharp(req.file.buffer)
+    const imageBuffer = await sharp(req.file.buffer)
       .resize(width, height, {
         fit,
         position: 'center',
       })
       .toFormat('jpeg')
       .jpeg({ quality: 85 })
-      .toFile(`public/uploads/${ResourceFolders[resource]}/${filename}`);
+      .toBuffer();
 
-    req.file.filename = filename;
-    req.imageUrl =
-      buildImageUrl(req, ResourceFolders[resource], filename) || '';
+    req.file.buffer = imageBuffer;
 
     next();
   });

@@ -67,14 +67,15 @@ This documentation reflects the current implementation in the workspace as of 20
 - Auth style:
 	- `Authorization: Bearer <token>`
 	- Or auth cookie: `gigtech_auth_token` (or value in `COOKIE_NAME` env)
-- Static uploads are served from: `/uploads/<resource>/<filename>`
-	- students: `/uploads/students/...`
-	- sliders: `/uploads/sliders/...`
-	- courses: `/uploads/courses/...`
-- Image resize presets currently applied by server (`sharp`):
+- Image uploads are handled through Cloudinary, not the local `public/uploads` folder.
+	- The server accepts `multipart/form-data`, resizes the image with `sharp`, and uploads it to Cloudinary under the root folder `gigtech`.
+	- Storage folders: `gigtech/students`, `gigtech/sliders`, and `gigtech/courses`.
+	- The database stores the returned Cloudinary `secure_url` plus a `publicId` for future delete/replace operations.
+- Image resize presets currently applied before upload (`sharp`):
 	- student: 200x300, fit `cover`
 	- slider: 2000x800, fit `cover`
 	- course: 500x800, fit `cover`
+	- uploads are converted to JPEG at 85% quality before sending to Cloudinary
 
 ## Quick Endpoint Index
 
@@ -193,6 +194,7 @@ This documentation reflects the current implementation in the workspace as of 20
 
 Current implementation note:
 - `image` is handled as multipart file upload (`req.file`) while the validator checks text fields from the request body.
+- The uploaded file is resized and then pushed to Cloudinary; the saved database value is the Cloudinary `secure_url`, with `publicId` stored separately for delete/replace flows.
 
 ### Dashboard query params
 
@@ -813,7 +815,8 @@ Includes full debug fields:
 ### Slider
 
 - `id` number
-- `image` string
+- `image` string (Cloudinary `secure_url`)
+- `publicId` string (Cloudinary public ID used for deletion/overwrite)
 - `title` string
 - `description` string
 - `isActive` boolean, default `true`
@@ -830,7 +833,8 @@ Includes full debug fields:
 ### Course
 
 - `id` number
-- `image` string
+- `image` string (Cloudinary `secure_url`)
+- `publicId` string (Cloudinary public ID used for deletion/overwrite)
 - `title` string
 - `description` string
 - `duration` string
@@ -848,7 +852,8 @@ Includes full debug fields:
 - `email` string (unique)
 - `phone` string
 - `address` string
-- `photo` string, optional
+- `photo` string, optional (Cloudinary `secure_url`)
+- `publicId` string, optional (Cloudinary public ID used for deletion/overwrite)
 - `parentName` string
 - `parentsPhone` string
 - `parentsAddress` string
@@ -883,9 +888,9 @@ Includes full debug fields:
 
 - `DELETE /api/v1/faqs/:id` is protected and restricted to `ADMIN`.
 - `POST/PATCH /api/v1/courses` are protected and restricted to `ADMIN`.
-- Slider, course, and student create/update endpoints support image uploads using `multer` + `sharp`.
-- On image replacement, old files are removed from `public/uploads`; on delete, associated image file is also removed.
-- Read endpoints return absolute image URLs built from request host/protocol.
+- Slider, course, and student create/update endpoints use `multer` + `sharp` before uploading to Cloudinary.
+- The server stores each uploaded asset’s Cloudinary `publicId` and deletes that asset via Cloudinary when the record is replaced or deleted.
+- Read endpoints return direct Cloudinary image URLs from the stored `secure_url` values.
 - `GET /api/v1/dashboard` supports date-based filtering using `range` and optional `from`/`to` (for `custom`).
 - Payment module now exposes receipt endpoints:
 	- JSON receipt: `GET /api/v1/payments/:id/receipt` (protected)
