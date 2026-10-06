@@ -39,10 +39,15 @@ export const createCourse = catchAsync(
       return;
     }
 
+    const fileId = req.user.isDemo
+      ? `demo-course-image-${course.id.toString()}`
+      : `course-image-${course.id.toString()}`;
+
     const { secure_url, publicId } = await uploadToCloudinary(
       req?.file?.buffer,
       ResourceFolders[ImageResource.COURSE],
-      course.id.toString(),
+      fileId,
+      // course.id.toString(),
     );
 
     const updatedCourse = await prisma.course.update({
@@ -101,10 +106,15 @@ export const updateCourse = catchAsync(
     let publicId;
 
     if (req.file?.buffer) {
+      const fileId = req.user.isDemo
+        ? `demo-course-image-${existingCourse.id.toString()}`
+        : `course-image-${existingCourse.id.toString()}`;
+      
       const { secure_url, publicId: public_id } = await uploadToCloudinary(
         req.file.buffer,
         ResourceFolders[ImageResource.COURSE],
-        existingCourse.id.toString(),
+        fileId,
+        // existingCourse.id.toString(),
       );
 
       imageUrl = secure_url;

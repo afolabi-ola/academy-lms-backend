@@ -77,16 +77,6 @@ export const getStudent = catchAsync(
         student: student,
       },
     });
-
-    if (student) {
-      await sendEmail(
-        student.email,
-        'Welcome to GigTech Academy!',
-        `Dear ${student.firstname},\n\nThank you for enrolling in our course! We are excited to have you on board and look forward to helping you achieve your learning goals.\n\nBest regards,\nGigTech Academy Teams`,
-      ).catch((error) => {
-        console.error('Email failed:', error);
-      });
-    }
   }
 );
 
@@ -117,8 +107,7 @@ export const createStudent = catchAsync(
       const student = await tx.student.create({
         data: {
           ...studentData,
-          photo:
-            'https://res.cloudinary.com/gneyjc4o/image/upload/v1787933090/user_fqwnvn.jpg',
+          photo: process.env.CLOUDINARY_DEFAULT_STUDENT_AVATAR || '',
         },
       });
 
@@ -149,10 +138,15 @@ export const createStudent = catchAsync(
       return;
     }
 
+    const fileId = req.user.isDemo
+      ? `demo-student-photo-${result.id.toString()}`
+      : `student-photo-${result.id.toString()}`;
+
     const { secure_url, publicId } = await uploadToCloudinary(
       req.file.buffer,
       ResourceFolders['student'],
-      result.id.toString(),
+      fileId,
+      // result.id.toString(),
     );
 
     const updatedStudent = await prisma.student.update({
@@ -173,8 +167,8 @@ export const createStudent = catchAsync(
     if (result) {
       await sendEmail(
         result.email,
-        'Welcome to GigTech Academy!',
-        `Dear ${result.firstname},\n\nThank you for enrolling in our course! We are excited to have you on board and look forward to helping you achieve your learning goals.\n\nBest regards,\nGigTech Academy Teams`,
+        'Welcome to Academy LMS Academy!',
+        `Dear ${result.firstname},\n\nThank you for enrolling in our course! We are excited to have you on board and look forward to helping you achieve your learning goals.\n\nBest regards,\nAcademy LMS Academy Teams`,
       ).catch((err) => {
         console.error('Email Failed:', err);
       });
@@ -198,11 +192,17 @@ export const updateStudent = catchAsync(
 
     let imageUrl: string | undefined;
     let publicId: string | undefined;
+
     if (req.file?.buffer) {
+      const fileId = req.user.isDemo
+        ? `demo-student-photo-${student.id.toString()}`
+        : `student-photo-${student.id.toString()}`;
+      
       const { secure_url, publicId: newPublicId } = await uploadToCloudinary(
         req.file.buffer,
         ResourceFolders['student'],
-        student.id.toString(),
+        fileId,
+        // student.id.toString(),
       );
       imageUrl = secure_url;
       publicId = newPublicId;

@@ -77,6 +77,8 @@ model User {
   password  String
   role      Role @default(SUB_ADMIN)
   createdAt DateTime @default(now())
+  active    Boolean  @default(true)
+  isDemo   Boolean  @default(false)
 }
 
 model Enrollment {
@@ -91,7 +93,62 @@ model Enrollment {
   @@unique([studentId, courseId])
 }
 
+model Setting {
+  id                          Int       @id @default(1)
+
+  // General
+  appName                     String
+  appDescription              String?
+  contactEmail                String?
+
+  // Branding
+  logoUrl                        String?
+  logoUrlPublicId                String?
+  favicon                     String?
+  faviconPublicId             String?
+  logoText                    String?
+
+  // Student defaults
+  defaultStudentPhoto         String?
+  defaultStudentPhotoPublicId String?
+
+  // Dashboard theme
+  primaryColor                String?
+  secondaryColor              String?
+  accentColor                 String?
+  backgroundColor             String?
+  themeMode                   ThemeMode @default(LIGHT)
+
+  // Regional and financial settings
+  timezone                    String?
+  currency                    Currency  @default(NGN)
+
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
+}
+
 enum Role {
   ADMIN
   SUB_ADMIN
+  SUPER_ADMIN
+}
+
+enum ThemeMode {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+enum Currency {
+  NGN
+  USD
+  EUR
+  GBP
+  JPY
+  CAD
+  AUD
+  CHF
+  CNY
+  SEK
+  NZD
 }

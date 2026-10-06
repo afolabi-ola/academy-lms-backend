@@ -1,7 +1,7 @@
 import prisma from '../../lib/prisma';
 import bcrypt from 'bcrypt';
 
-const hashPassword = async (password: string): Promise<string> => {
+export const hashPassword = async (password: string): Promise<string> => {
   //Create a hashed password using bcrypt
   const passwordHash = await bcrypt.hash(password, 12);
   // Return the hashed password

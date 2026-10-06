@@ -7,6 +7,7 @@ import {
   generatePDF,
   getPaymentReceiptData,
 } from '../services/payment.service';
+import { DEFAULT_SETTINGS_ID } from './settingController';
 
 export const getAllPayments = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -156,12 +157,21 @@ export const getPaymentReceiptPDF = catchAsync(
       return next(new AppError('Failed to create receipt data', 400));
     }
 
-    const logoUrl = `${req.protocol}://${req.get('host')}/uploads/siteSettings/logo.png`;
+    const logoUrl = await prisma.setting.findUnique({
+      where: {
+        id: DEFAULT_SETTINGS_ID,
+      },
+      select: {
+        logoUrl: true,
+      },
+    });
 
-    const receiptHTML = buildReceiptHTML(receipt, logoUrl);
+    if (!logoUrl) {
+      return next(new AppError('Logo not found in settings', 404));
+    }
 
-    // Here you would implement the logic to convert the HTML to PDF and send it as a response
-    // For example, you could use a library like puppeteer to generate the PDF from the HTML
+    const receiptHTML = buildReceiptHTML(receipt, logoUrl?.logoUrl || '');
+
 
     const pdfBuffer = await generatePDF(receiptHTML);
 

@@ -1,4 +1,4 @@
-# GigTech Backend API Documentation
+# Academy LMS Backend API Documentation
 
 This documentation reflects the current implementation in the workspace as of 2026-04-15.
 
@@ -12,6 +12,7 @@ This documentation reflects the current implementation in the workspace as of 20
 - [Endpoint Quick Links](#endpoint-quick-links)
 - [Dashboard](#dashboard)
 - [Health](#health)
+- [Settings](#settings)
 - [Sliders](#sliders)
 - [FAQs](#faqs)
 - [Courses](#courses)
@@ -28,6 +29,8 @@ This documentation reflects the current implementation in the workspace as of 20
 - [POST /api/v1/users/register](#users-post-register)
 - [GET /](#health-get-root)
 - [GET /api/v1/dashboard](#dashboard-get)
+- [GET /api/v1/settings](#settings-get)
+- [PATCH /api/v1/settings](#settings-patch)
 - [GET /api/v1/sliders](#sliders-get)
 - [POST /api/v1/sliders](#sliders-post)
 - [GET /api/v1/sliders/:id](#sliders-get-by-id)
@@ -66,10 +69,10 @@ This documentation reflects the current implementation in the workspace as of 20
 	- `multipart/form-data` for image upload endpoints
 - Auth style:
 	- `Authorization: Bearer <token>`
-	- Or auth cookie: `gigtech_auth_token` (or value in `COOKIE_NAME` env)
+	- Or auth cookie: `academy_lms_auth_token` (or value in `COOKIE_NAME` env)
 - Image uploads are handled through Cloudinary, not the local `public/uploads` folder.
-	- The server accepts `multipart/form-data`, resizes the image with `sharp`, and uploads it to Cloudinary under the root folder `gigtech`.
-	- Storage folders: `gigtech/students`, `gigtech/sliders`, and `gigtech/courses`.
+	- The server accepts `multipart/form-data`, resizes the image with `sharp`, and uploads it to Cloudinary under the root folder `academy_lms`.
+	- Storage folders: `academy_lms/students`, `academy_lms/sliders`, and `academy_lms/courses`.
 	- The database stores the returned Cloudinary `secure_url` plus a `publicId` for future delete/replace operations.
 - Image resize presets currently applied before upload (`sharp`):
 	- student: 200x300, fit `cover`
@@ -83,6 +86,8 @@ This documentation reflects the current implementation in the workspace as of 20
 | --- | --- | --- | --- | --- |
 | Health | GET | `/` | No | Public |
 | Dashboard | GET | `/api/v1/dashboard` | Yes | Any logged-in user |
+| Settings | GET | `/api/v1/settings` | No | Public |
+| Settings | PATCH | `/api/v1/settings` | Yes | `ADMIN` |
 | Sliders | GET | `/api/v1/sliders` | No | Public |
 | Sliders | POST | `/api/v1/sliders` | Yes | `ADMIN` |
 | Sliders | GET | `/api/v1/sliders/:id` | No | Public |
@@ -374,6 +379,75 @@ Possible error cases:
 	"message": "Welcome to app"
 }
 ```
+
+### Settings
+
+<a id="settings-get"></a>
+
+#### `GET /api/v1/settings`
+
+- Public endpoint; authentication is not required.
+- Returns the singleton application settings record.
+- Response `200`:
+
+```json
+{
+	"status": "success",
+	"data": {
+		"settings": {
+			"id": 1,
+			"appName": "Academy LMS",
+			"appDescription": "A modern learning management system",
+			"contactEmail": "admin@example.com",
+			"logoUrl": "https://example.com/logo.jpg",
+			"favicon": "https://example.com/favicon.jpg",
+			"defaultStudentPhoto": "https://example.com/student.jpg",
+			"themeMode": "LIGHT",
+			"primaryColor": "#eeeeee",
+			"secondaryColor": "#1b1b1b",
+			"accentColor": "#1b1b1b",
+			"backgroundColor": "#070707",
+			"timezone": "Africa/Lagos",
+			"currency": "NGN"
+		}
+	}
+}
+```
+
+<a id="settings-patch"></a>
+
+#### `PATCH /api/v1/settings`
+
+- Auth required, role: `ADMIN`.
+- Request type: `multipart/form-data`.
+- This is a partial update; send only the fields that should change.
+- Text fields:
+	- `appName`, `appDescription`, `contactEmail`, `timezone`, `currency`
+	- `primaryColor`, `secondaryColor`, `accentColor`, `backgroundColor`
+	- `themeMode`: `LIGHT`, `DARK`, or `SYSTEM`
+	- `logoText` is accepted by validation but is not currently persisted.
+- Optional image file fields:
+	- `logo`
+	- `favicon`
+	- `defaultStudentPhoto`
+- Image files are resized and uploaded to Cloudinary. The response contains the resulting image URLs.
+
+Example using `curl` after obtaining a login token:
+
+```bash
+curl -X PATCH http://localhost:3000/api/v1/settings \
+	-H "Authorization: Bearer <token>" \
+	-F "appName=Florintech Academy" \
+	-F "themeMode=LIGHT" \
+	-F "primaryColor=#eeeeee" \
+	-F "currency=NGN" \
+	-F "logo=@./logo.png" \
+	-F "favicon=@./favicon.png" \
+	-F "defaultStudentPhoto=@./default-student-photo.jpg"
+```
+
+- Response `200` uses the same `data.settings` shape as `GET /api/v1/settings`.
+- A frontend using `FormData` should not set the `Content-Type` header manually; the browser adds the multipart boundary.
 
 ### Sliders
 

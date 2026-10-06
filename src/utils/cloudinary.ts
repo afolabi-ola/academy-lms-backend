@@ -6,6 +6,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET || '',
 });
 
-export const CLOUDINARY_ROOT_FOLDER = 'gigtech';
+export const CLOUDINARY_ROOT_FOLDER = 'academy_lms';
 
 export default cloudinary;

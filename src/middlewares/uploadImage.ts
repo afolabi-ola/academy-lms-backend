@@ -47,6 +47,24 @@ export const IMAGE_PRESETS: { [key in ImageResource]: ResizeOptions } = {
   },
 };
 
+export const SETTING_IMAGE_PRESETS: { [key: string]: ResizeOptions } = {
+  logo: {
+    width: 200,
+    height: 200,
+    fit: 'contain',
+  },
+  favicon: {
+    width: 32,
+    height: 32,
+    fit: 'contain',
+  },
+  defaultStudentPhoto: {
+    width: 200,
+    height: 300,
+    fit: 'cover',
+  },
+};
+
 const multerStorage = multer.memoryStorage();
 
 const multerFilter = (
@@ -86,11 +104,70 @@ const resizeImage = (resource: keyof typeof IMAGE_PRESETS) => {
   });
 };
 
+// const resizeSettingImage = (field: keyof typeof SETTING_IMAGE_PRESETS) => {
+//   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+//     if (!req.file) return next();
+
+//     const { width, height, fit = 'cover' } = SETTING_IMAGE_PRESETS[field]!;
+
+//     const imageBuffer = await sharp(req.file.buffer)
+//       .resize(width, height, {
+//         fit,
+//         position: 'center',
+//       })
+//       .toFormat('jpeg')
+//       .jpeg({ quality: 85 })
+//       .toBuffer();
+
+//     req.file.buffer = imageBuffer;
+
+//     next();
+//   });
+// };
+
+
 const uploadSingleImage = (
   field: string = 'image',
   resource: keyof typeof IMAGE_PRESETS,
 ) => {
   return [uploadImage(field), resizeImage(resource)];
+};
+
+export const uploadSettingsImages = () => {
+  return [
+    upload.fields([
+      { name: 'logo', maxCount: 1 },
+      { name: 'favicon', maxCount: 1 },
+      { name: 'defaultStudentPhoto', maxCount: 1 },
+    ]),
+
+    catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+      const files = req.files as {
+        [fieldname: string]: Express.Multer.File[];
+      };
+
+      if (!files) return next();
+
+      for (const field of Object.keys(SETTING_IMAGE_PRESETS)) {
+        const file = files[field]?.[0];
+
+        if (!file) continue;
+
+        const { width, height, fit = 'cover' } = SETTING_IMAGE_PRESETS[field]!;
+
+        file.buffer = await sharp(file.buffer)
+          .resize(width, height, {
+            fit,
+            position: 'center',
+          })
+          .toFormat('jpeg')
+          .jpeg({ quality: 85 })
+          .toBuffer();
+      }
+
+      next();
+    }),
+  ];
 };
 
 export default uploadSingleImage;
