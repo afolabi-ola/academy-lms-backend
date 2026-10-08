@@ -1,11 +1,11 @@
 meta {
-  name: Online
+  name: Get All Users
   type: http
-  seq: 10
+  seq: 3
 }
 
 get {
-  url: https://gigtech-backend-fork.onrender.com/api/v1/dashboard
+  url: {{URL}}users
   body: none
   auth: inherit
 }
@@ -13,4 +13,5 @@ get {
 settings {
   encodeUrl: true
   timeout: 0
+  forwardAuthorizationHeader: false
 }

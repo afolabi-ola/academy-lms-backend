@@ -1,23 +1,21 @@
 meta {
-  name: Get Dashboard
+  name: Search All
   type: http
   seq: 1
 }
 
 get {
-  url: {{URL}}dashboard
+  url: {{URL}}search?query=Afolabi
   body: none
   auth: inherit
 }
 
 params:query {
-  ~range: month
-  ~range: today
-  ~range: week
-  ~range: year
+  query: Afolabi
 }
 
 settings {
   encodeUrl: true
   timeout: 0
+  forwardAuthorizationHeader: false
 }

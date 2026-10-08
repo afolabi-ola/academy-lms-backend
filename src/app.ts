@@ -7,6 +7,8 @@ import studentRouter from './admin/routes/studentRoutes';
 import paymentRouter from './admin/routes/paymentRoutes';
 import userRouter from './admin/routes/userRoutes';
 import enrollmentRouter from './admin/routes/enrollmentRoutes';
+import settingRouter from './admin/routes/settingRoutes';
+import searchRouter from './admin/routes/searchRoutes';
 import AppError from './utils/appError';
 import errorController from './middlewares/errorController';
 import cookieParser from 'cookie-parser';
@@ -61,6 +63,8 @@ app.use('/api/v1/students', studentRouter);
 app.use('/api/v1/payments', paymentRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/enrollments', enrollmentRouter);
+app.use('/api/v1/settings', settingRouter);
+app.use('/api/v1/search', searchRouter);
 
 // Handle undefined routes (404)
 app.all('/{*splat}', (req, res, next) => {

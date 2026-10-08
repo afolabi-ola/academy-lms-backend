@@ -1,0 +1,23 @@
+meta {
+  name: Update Settings
+  type: http
+  seq: 14
+}
+
+patch {
+  url: {{URL}}settings
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  logo: @file(/home/olasunkanmi/Pictures/Media/Assets/C@llyn$ 3D IMAGES/20230503_175342.jpg) @contentType(image/jpeg)
+  defaultStudentPhoto: @file(/home/olasunkanmi/Pictures/Media/Assets/C@llyn$ 3D IMAGES/20230503_175431.jpg) @contentType(image/jpeg)
+  favicon: @file(/home/olasunkanmi/Pictures/Media/Assets/C@llyn$ 3D IMAGES/20230503_175421.jpg) @contentType(image/jpeg)
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}

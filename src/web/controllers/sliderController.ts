@@ -39,10 +39,15 @@ export const createSlider = catchAsync(
       return;
     }
 
+    const fileId = req.user.isDemo
+      ? `demo-slider-image-${slider.id.toString()}`
+      : `slider-image-${slider.id.toString()}`;
+
     const { secure_url, publicId } = await uploadToCloudinary(
       req?.file?.buffer,
       ResourceFolders['slider'],
-      slider.id.toString(),
+      fileId,
+      // slider.id.toString(),
     );
 
     const updatedSlider = await prisma.slider.update({
@@ -101,10 +106,15 @@ export const updateSlider = catchAsync(
     let publicId = existingSlider.publicId;
 
     if (req.file?.buffer) {
+      const fileId = req.user.isDemo
+        ? `demo-slider-image-${existingSlider.id.toString()}`
+        : `slider-image-${existingSlider.id.toString()}`;
+      
       const { secure_url, publicId: newPublicId } = await uploadToCloudinary(
         req.file.buffer,
         ResourceFolders['slider'],
-        existingSlider.id.toString(),
+        fileId,
+        // existingSlider.id.toString(),
       );
 
       imageUrl = secure_url;

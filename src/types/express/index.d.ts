@@ -5,8 +5,11 @@ declare global {
     interface Request {
       user: {
         id: number;
+        name: string;
         email: string;
-        role: 'ADMIN' | 'SUB_ADMIN';
+        role: 'ADMIN' | 'SUB_ADMIN' | 'SUPER_ADMIN';
+        active: boolean;
+        isDemo: boolean;
       };
       imagePublicId?: string;
       imageUrl?: string;

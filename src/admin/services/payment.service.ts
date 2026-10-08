@@ -118,16 +118,25 @@ export const buildReceiptHTML = (
               margin-bottom: 10px;
             }
 
+            .logo img {
+              max-width: 100%;
+              height: auto;
+              max-height: 70px;
+            }
+
              .watermark {
                 position: fixed;
-         
-                transform: translate(0%, 90%) rotate(-55deg);
-                opacity: 0.1;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(-20deg);
+                opacity: 0.06;
                 z-index: 0;
               }
 
               .watermark img {
-                width: 400px;
+                width: 180px;
+                max-height: 180px;
+                object-fit: contain;
               }
 
               .receipt-container {
@@ -174,25 +183,71 @@ export const buildReceiptHTML = (
   return html;
 };
 
-export const generatePDF = async (html: string) => {
-  // Implementation to generate PDF from the HTML
+// export const generatePDF = async (html: string) => {
+//   // Implementation to generate PDF from the HTML
 
+//   const browser = await puppeteer.launch({
+//     args: ['--no-sandbox', '--disable-setuid-sandbox'],
+//   });
+//   const page = await browser.newPage();
+
+//   // await page.setContent(html, {
+//   //   waitUntil: 'domcontentloaded',
+//   // });
+//   await page.setContent(html, {
+//     waitUntil: 'networkidle0', // Wait until there are no more than 0 network connections for at least 500 ms
+//   });
+
+//   await page.waitForSelector('.logo img');
+
+//   const pdfBuffer = await page.pdf({
+//     width: '80mm',
+//     height: '100mm',
+//     printBackground: true,
+//   });
+
+//   await browser.close();
+
+//   return pdfBuffer;
+// };
+
+export const generatePDF = async (html: string) => {
   const browser = await puppeteer.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
-  const page = await browser.newPage();
 
-  await page.setContent(html, {
-    waitUntil: 'domcontentloaded',
-  });
+  try {
+    const page = await browser.newPage();
 
-  const pdfBuffer = await page.pdf({
-    width: '80mm',
-    height: '100mm',
-    printBackground: true,
-  });
+    await page.setContent(html, {
+      waitUntil: 'networkidle0',
+    });
 
-  await browser.close();
+    await page.waitForSelector('.logo img');
 
-  return pdfBuffer;
+    await page.evaluate(async () => {
+      const images = Array.from(document.images);
+
+      await Promise.all(
+        images.map((img) => {
+          if (img.complete) return Promise.resolve();
+
+          return new Promise((resolve) => {
+            img.addEventListener('load', resolve);
+            img.addEventListener('error', resolve);
+          });
+        }),
+      );
+    });
+
+    const pdfBuffer = await page.pdf({
+      width: '80mm',
+      height: '100mm',
+      printBackground: true,
+    });
+
+    return pdfBuffer;
+  } finally {
+    await browser.close();
+  }
 };

@@ -1,3 +1,29 @@
-PORT=your_server_port
-NODE_ENV=node_environment
-DATABASE_URL=your_database_url
+PORT=your-port-number
+NODE_ENV=development
+DATABASE_URL=your-database-connection-string
+JWT_SECRET=your-secret-key
+
+JWT_EXPIRES_IN=1h
+BCRYPT_SALT_ROUNDS=12
+
+COOKIE_NAME=your-cookie-name
+COOKIE_EXPIRES_IN=1
+
+#Email configuration for development
+EMAIL_PORT_DEV=1025
+EMAIL_HOST_DEV=127.0.0.1
+EMAIL_FROM_DEV ="Your App Name <support@yourapp.com>"
+
+
+#Email configuration for production
+# EMAIL_HOST_PROD="smtp-relay.brevo.com"
+# EMAIL_PORT_PROD=587
+# EMAIL_USER_PROD=your-email-username
+# EMAIL_PASS_PROD=your-email-password
+# EMAIL_FROM_PROD="Your App Name <support@yourapp.com>"
+
+
+# Cloudinary configuration for image upload
+CLOUDINARY_CLOUD_NAME="your-cloudinary-cloud-name"  
+CLOUDINARY_API_KEY="your-cloudinary-api-key"
+CLOUDINARY_API_SECRET="your-cloudinary-api-secret"

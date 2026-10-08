@@ -5,19 +5,29 @@ meta {
 }
 
 post {
-  url: {{URL}}api/v1/users/register
+  url: {{URL}}users/register
   body: json
   auth: inherit
 }
 
 body:json {
+  // {
+  //   "name":"admin",
+  //   "email":"admin@gigtech.com",
+  //   "password":"12345678"
+  // }
+  
+  // {
+  //   "name":"sub admin",
+  //   "email":"sub@gigtech.com",
+  //   "password":"12345678"
+  // }
+  
   {
-    "name":"admin",
-    "email":"admin@gigtech.com",
+    "name":"super admin",
+    "email":"super_admin@gigtech.com",
     "password":"12345678"
   }
-  
-  
 }
 
 settings {
