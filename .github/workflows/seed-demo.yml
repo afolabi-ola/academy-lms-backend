@@ -26,7 +26,7 @@ jobs:
         run: npm ci
 
       - name: Run database seed
-        run: npm run seed
+        run: npx prisma db seed
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SEED_ADMIN_NAME: ${{ secrets.SEED_ADMIN_NAME }}
